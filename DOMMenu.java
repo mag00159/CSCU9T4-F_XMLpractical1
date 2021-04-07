@@ -1,5 +1,4 @@
 import java.io.*;               // import input-output
-
 import javax.xml.XMLConstants;
 import javax.xml.parsers.*;         // import parsers
 import javax.xml.transform.dom.DOMSource;
@@ -8,7 +7,9 @@ import javax.xml.validation.*;      // import validators
 import javax.xml.transform.*;       // import DOM source classes
 
 //import com.sun.xml.internal.bind.marshaller.NioEscapeHandler;
-import org.w3c.dom.*;               // import DOM
+import org.w3c.dom.*;// import DOM
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
   DOM handler to read XML information, to create this, and to print it.
@@ -16,7 +17,8 @@ import org.w3c.dom.*;               // import DOM
   @author   CSCU9T4, University of Stirling
   @version  11/03/20
 */
-public class DOMMenu {
+public class DOMMenu 
+{
 
   /** Document builder */
   private static DocumentBuilder builder = null;
@@ -37,14 +39,19 @@ public class DOMMenu {
 
     @param args         command-line arguments
   */
-  public static void main(String[] args)  {
+  public static void main(String[] args) throws SAXParseException 
+  {
     // load XML file into "document"
     loadDocument(args[0]);
     // print staff.xml using DOM methods and XPath queries
-    printNodes();
   
-   
-  }
+  boolean isValidated = validateDocument(args[1]);
+
+    // print small_menu.xml using DOM methods and XPath queries
+    if (isValidated)
+      printNodes();
+      
+}
 
   /**
     Set global document by reading the given file.
@@ -82,21 +89,38 @@ public class DOMMenu {
       Validator validator = schema.newValidator();
       validator.validate(new DOMSource(document));
       return true;
-    } catch (Exception e){
-      System.err.println(e);
-      System.err.println("Could not load schema or validate");
+    
+    } catch (SAXParseException | IOException e)
+    {
+      e.printStackTrace();
+      return false;
+    } 
+    
+    catch (SAXException e) 
+    {
+      e.printStackTrace();
       return false;
     }
   }
+  
   /**
     Print nodes using DOM methods and XPath queries.
   */
-  private static void printNodes() {
-    Node menuItem_1 = document.getFirstChild();
-    Node menuItem_2 = menuItem_1.getFirstChild().getNextSibling();
-    System.out.println("First child is: " + menuItem_1.getNodeName());
-    System.out.println("  Child is: " + menuItem_2.getNodeName());
-
+  private static void printNodes()
+  {
+    
+    NodeList list = document.getElementsByTagName("item");
+    
+    NodeList nameList = document.getElementsByTagName("name");
+    NodeList priceList = document.getElementsByTagName("price");
+    NodeList descriptionList = document.getElementsByTagName("description");
+    
+// traverses all the lists according to the different tags and prints their contents
+    for (int i = 0; i < list.getLength(); i++) 
+    {
+      System.out.printf(nameList.item(i).getTextContent(),priceList.item(i).getTextContent(), descriptionList.item(i).getTextContent());
+      System.out.println();
+    }
   }
 
   /**
